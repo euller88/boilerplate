@@ -9,39 +9,84 @@ Boilerplate é um pacote que contém o conjunto de código que eu sempre escrevo
 package main
 
 import (
-    "log"
+  "log"
 	"net/http"
 	"github.com/euller88/boilerplate"
 	"github.com/gorilla/mux"
 )
 
 func Hello(w http.ResponseWriter, r *http.Request) {
-    boilerplate.OK("Hello World!",w)
+  boilerplate.OK("Hello World!", w)
 }
 
 func HelloVar(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    boilerplate.OK("Hello World!"+vars["v"] ,w)
+  vars := mux.Vars(r)
+  boilerplate.OK("Hello World! "+vars["v"], w)
+}
+
+func HelloJSONMap(w http.ResponseWriter, r *http.Request) {
+  m := map[string]interface{}{"message":"Hello World"}
+  boilerplate.OK(m, w)
+}
+
+func HelloJSONStruct(w http.ResponseWriter, r *http.Request) {
+  s := &struct{
+    Message string `json:"message"`
+  }{
+    "Hello world",
+  }
+  boilerplate.OK(s, w)
+}
+
+func HelloEmpty(w http.ResponseWriter, r *http.Request){
+  boilerplate.OK("", w)
 }
 
 func main() {
-    boilerplate.RegisterRoute(&boilerplate.Route{
-        Handler: http.HandlerFunc(Hello),
-		Method:  "GET",
-		Name:    "Hello",
-		Pattern: "/",
-    })
+  routes := make([]*boilerplate.Route, 0)
+
+  routes = append(
+    routes, 
+    &boilerplate.Route{
+      Handler: http.HandlerFunc(Hello),
+      Method:  "GET",
+	  	Name:    "Hello",
+      Pattern: "/",
+    },
+    &boilerplate.Route{
+      Handler: http.HandlerFunc(HelloVar),
+      Method:  "GET",
+	  	Name:    "HelloVar",
+      Pattern: "/{v}",
+    },
+    &boilerplate.Route{
+      Handler: http.HandlerFunc(HelloJSONMap),
+      Method:  "GET",
+      Name:    "HelloJSONMap",
+      Pattern: "/map",
+    },
+    &boilerplate.Route{
+      Handler: http.HandlerFunc(HelloJSONStruct),
+      Method:  "GET",
+      Name:    "HelloJSONStruct",
+      Pattern: "/struct",
+    },
+  )
+
+  router := boilerplate.NewRouter()
+
+  router.AddRoute(routes...)
+
+  r := &boilerplate.Route{
+    Handler: http.HandlerFunc(HelloEmpty),
+    Method:  "GET",
+    Name:    "HelloEmpty",
+    Pattern: "/empty",
+  },
+
+  router.AddRoute(r)    
     
-    boilerplate.RegisterRoute(&boilerplate.Route{
-        Handler: http.HandlerFunc(HelloVar),
-		Method:  "GET",
-		Name:    "HelloVar",
-		Pattern: "/{v}",
-    })
-    
-    router := boilerplate.NewRouter()
-    
-    log.Fatalln(http.ListenAndServe(":8080", router))
+  log.Fatalln(http.ListenAndServe(":8080", router))
 }
 ```
 ##### Handlers outside the main package / Handlers fora do pacote principal
@@ -55,28 +100,30 @@ import (
 )
 
 func Hello(w http.ResponseWriter, r *http.Request) {
-    boilerplate.OK("Hello World!",w)
+  boilerplate.OK("Hello World!", w)
 }
 
 func HelloVar(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    boilerplate.OK("Hello World!"+vars["v"] ,w)
+  vars := mux.Vars(r)
+  boilerplate.OK("Hello World! "+vars["v"], w)
 }
 
-func init() {
-    boilerplate.RegisterRoute(&boilerplate.Route{
-        Handler: http.HandlerFunc(Hello),
-		Method:  "GET",
-		Name:    "Hello",
-		Pattern: "/",
-    })
-    
-    boilerplate.RegisterRoute(&boilerplate.Route{
-        Handler: http.HandlerFunc(HelloVar),
-		Method:  "GET",
-		Name:    "HelloVar",
-		Pattern: "/{v}",
-    })
+func HelloJSONMap(w http.ResponseWriter, r *http.Request) {
+  m := map[string]interface{}{"message":"Hello World"}
+  boilerplate.OK(m, w)
+}
+
+func HelloJSONStruct(w http.ResponseWriter, r *http.Request) {
+  s := &struct{
+    Message string `json:"message"`
+  }{
+    "Hello world",
+  }
+  boilerplate.OK(s, w)
+}
+
+func HelloEmpty(w http.ResponseWriter, r *http.Request){
+  boilerplate.OK("", w)
 }
 ```
 ***
@@ -84,17 +131,56 @@ func init() {
 package main
 
 import (
-    "log"
+  "log"
 	"net/http"
 	"github.com/euller88/boilerplate"
-	//import like that in order to call the init() function of the package
-	//importe assim para poder chamar a função init() do pacote
-	_ "your/repository/name/handlers"
+	"your/repository/name/handlers"
 )
 
 func main() {
-    router := boilerplate.NewRouter()
+  routes := make([]*boilerplate.Route, 0)
+
+  routes = append(
+    routes, 
+    &boilerplate.Route{
+      Handler: http.HandlerFunc(handlers.Hello),
+      Method:  "GET",
+	  	Name:    "Hello",
+      Pattern: "/",
+    },
+    &boilerplate.Route{
+      Handler: http.HandlerFunc(handlers.HelloVar),
+      Method:  "GET",
+	  	Name:    "HelloVar",
+      Pattern: "/{v}",
+    },
+    &boilerplate.Route{
+      Handler: http.HandlerFunc(handlers.HelloJSONMap),
+      Method:  "GET",
+      Name:    "HelloJSONMap",
+      Pattern: "/map",
+    },
+    &boilerplate.Route{
+      Handler: http.HandlerFunc(handlers.HelloJSONStruct),
+      Method:  "GET",
+      Name:    "HelloJSONStruct",
+      Pattern: "/struct",
+    },
+  )
+
+  router := boilerplate.NewRouter()
+
+  router.AddRoute(routes...)
+
+  r := &boilerplate.Route{
+    Handler: http.HandlerFunc(handlers.HelloEmpty),
+    Method:  "GET",
+    Name:    "HelloEmpty",
+    Pattern: "/empty",
+  },
+
+  router.AddRoute(r)    
     
-    log.Fatalln(http.ListenAndServe(":8080", router))
+  log.Fatalln(http.ListenAndServe(":8080", router))
 }
 ```
