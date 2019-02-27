@@ -94,6 +94,22 @@ func Forbidden(err error, w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(data)
 }
 
+//Unauthorized retorna uma resposta para o status HTTP 401
+//
+//Unauthorized returnas a response to the HTTP status 401
+func Unauthorized(err error, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusUnauthorized)
+
+	data := errorMessage{
+		Code:   http.StatusUnauthorized,
+		Status: http.StatusText(http.StatusUnauthorized),
+		Detail: err.Error(),
+	}
+
+	json.NewEncoder(w).Encode(data)
+}
+
 //OK retorna uma resposta para o status HTTP 200
 //
 //OK returnas a response to the HTTP status 200
